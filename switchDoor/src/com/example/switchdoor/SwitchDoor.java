@@ -1,11 +1,13 @@
 package com.example.switchdoor;
 
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -17,15 +19,15 @@ public class SwitchDoor extends View {
 
 	private Bitmap mBackground;// 滑动的背景
 	private Bitmap mSlideImage;// 滑动块的图片
-	private Paint paint = new Paint();
+	private Paint paint = new Paint();//创建一个画笔
 
 	private boolean isOpened = false;// 用来标记控件是否是打开的
-	private float mCurrentY;
+	private float mCurrentY;//临时记录Y的坐标
 
 	private int mState = STATE_UP;// 用来记录用户当前手势的状态,默认状态
-	private OnToggleListener mListener;
+	private OnToggleListener mListener;//给整个控件设置监听
 
-	private int temp=90;
+	private int space=90;
 
 	public SwitchDoor(Context context) {
 		this(context, null);
@@ -52,13 +54,12 @@ public class SwitchDoor extends View {
 		// 设置 当前控件的实际的宽高
 
 		if (mBackground != null) {
-			int measuredWith = mBackground.getWidth();
-			int measuredHeight = mBackground.getHeight();
+			int measuredWith = mBackground.getWidth();//获取背景的宽度
+			int measuredHeight = mBackground.getHeight();//获取背景的高度
+			int slideWidth = mSlideImage.getWidth();//获取滑动块的宽度
 			//Log.d(TAG,""+measuredHeight)
-			int slideWidth = mSlideImage.getWidth();
-			//Log.d(TAG,""+measuredHeight)
-			temp = (measuredWith-slideWidth)/2;
-			setMeasuredDimension(measuredWith, measuredHeight);
+			space = (measuredWith-slideWidth)/2;//获滑动块和背景之间的间距
+			setMeasuredDimension(measuredWith, measuredHeight);//设置当前控件的大小
 		} else {
 			super.onMeasure(highMeasureSpec, heightMeasureSpec);
 		}
@@ -71,10 +72,10 @@ public class SwitchDoor extends View {
 		if (mBackground != null) {
 
 			// canvas 画布，画板
-			int high = 0;
-			int top = 0;
+			int high = 0;//画的X轴起始位置
+			int top = 0;//画的Y轴起始位置
 
-			canvas.drawBitmap(mBackground, 0, top, paint);
+			canvas.drawBitmap(mBackground, high, top, paint);//画背景
 		}
 
 		// 画滑动块
@@ -93,32 +94,32 @@ public class SwitchDoor extends View {
 		case STATE_DOWN:
 		case STATE_MOVE:
 			if (!isOpened) {
-				// 当控件在左侧-->关闭情况
-				if (mCurrentY < slideHigh / 2f) {// 当前的点的垂直坐标在 滑动块的上侧
-					canvas.drawBitmap(mSlideImage, temp, 100, paint);
+				// 当控件在上侧-->关闭情况
+				if (mCurrentY < slideHigh / 2f+space) {// 当前的点的垂直坐标在 滑动块的上侧
+					canvas.drawBitmap(mSlideImage, space, space, paint);
 				} else {
 					// 在下侧
 					float high = mCurrentY - slideHigh / 2f;
 					float maxhigh = backHigh - slideHigh;
-					if (high > maxhigh) {
-						high = maxhigh;
+					if (high > maxhigh-space) {
+						high = maxhigh-space;
 					}
-					canvas.drawBitmap(mSlideImage, temp, high, paint);
+					canvas.drawBitmap(mSlideImage, space, high, paint);
 				}
 			} else {
 				// 在下侧--》打开的
 				// 当前的点的垂直坐标在 滑动块的下侧，不动
-				if (mCurrentY > backHigh - slideHigh / 2f) {
+				if (mCurrentY > backHigh - slideHigh / 2f-space) {
 					// 画打开的状态
-					float high = backHigh - slideHigh;
-					canvas.drawBitmap(mSlideImage, temp, high, paint);
+					float high = backHigh - slideHigh-space;
+					canvas.drawBitmap(mSlideImage, space, high, paint);
 				} else {
 					//
-					float high = mCurrentY - slideHigh / 2f;
-					if (high < 0) {
-						high = 0;
+					float high = mCurrentY - slideHigh / 2f-space;
+					if (high < space) {
+						high = space;
 					}
-					canvas.drawBitmap(mSlideImage, temp, high, paint);
+					canvas.drawBitmap(mSlideImage, space, high, paint);
 				}
 			}
 			break;
@@ -126,10 +127,10 @@ public class SwitchDoor extends View {
 			if (isOpened) {
 				// 打开的
 				float high = backHigh - slideHigh;
-				canvas.drawBitmap(mSlideImage,temp, high-temp, paint);
+				canvas.drawBitmap(mSlideImage,space, high-space, paint);
 			} else {
 				// 关闭的
-				canvas.drawBitmap(mSlideImage, temp, temp, paint);
+				canvas.drawBitmap(mSlideImage, space, space, paint);
 			}
 			break;
 		default:
